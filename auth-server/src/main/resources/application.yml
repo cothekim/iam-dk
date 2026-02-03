@@ -6,14 +6,14 @@ spring:
     name: iam-dk-auth-server
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/iamdk
+    url: jdbc:postgresql://directory-db:5432/iamdk_directory
     username: iamdk
-    password: iamdk_password_change_me
+    password: secret
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:

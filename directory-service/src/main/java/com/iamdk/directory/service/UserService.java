@@ -97,7 +97,7 @@ public class UserService {
         if (query == null || query.isBlank()) {
             return userRepository.findAll(pageable);
         }
-        return userRepository.findByLoginNameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query, pageable);
+        return userRepository.findByLoginNameOrEmailContainingIgnoreCase(query, pageable);
     }
 
     /**

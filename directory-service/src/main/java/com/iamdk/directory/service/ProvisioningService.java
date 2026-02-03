@@ -35,13 +35,13 @@ public class ProvisioningService {
     private static final Map<String, Function<CSVRecord, String>> DEFAULT_MAPPINGS = new HashMap<>();
 
     static {
-        DEFAULT_MAPPINGS.put("loginName", CSVRecord::get);
-        DEFAULT_MAPPINGS.put("email", CSVRecord::get);
-        DEFAULT_MAPPINGS.put("firstName", CSVRecord::get);
-        DEFAULT_MAPPINGS.put("lastName", CSVRecord::get);
+        DEFAULT_MAPPINGS.put("loginName", record -> record.get("loginName"));
+        DEFAULT_MAPPINGS.put("email", record -> record.get("email"));
+        DEFAULT_MAPPINGS.put("firstName", record -> record.get("firstName"));
+        DEFAULT_MAPPINGS.put("lastName", record -> record.get("lastName"));
         DEFAULT_MAPPINGS.put("active", record -> {
             String value = record.get("active").toLowerCase();
-            return "true".equals(value) || "yes".equals(value) || "1".equals(value);
+            return String.valueOf("true".equals(value) || "yes".equals(value) || "1".equals(value));
         });
     }
 

@@ -1,18 +1,10 @@
-FROM maven:3.9-eclipse-temurin-17 AS build
-
-WORKDIR /app
-
-COPY pom.xml .
-RUN mvn dependency:go-offline
-
-COPY src ./src
-RUN mvn clean package -DskipTests
-
+# Runtime stage
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-COPY --from=build /app/target/directory-service-1.0.0-MVP.jar app.jar
+# Copy pre-built JAR from local build
+COPY directory-service/build/libs/*.jar app.jar
 
 EXPOSE 8081
 

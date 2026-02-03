@@ -2,6 +2,7 @@ package com.iamdk.directory.controller;
 
 import com.iamdk.directory.entity.OAuthClient;
 import com.iamdk.directory.entity.User;
+import com.iamdk.directory.security.JwtService;
 import com.iamdk.directory.service.OAuthClientService;
 import com.iamdk.directory.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -46,10 +47,10 @@ public class AdminController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
             );
 
-            String token = jwtService.generateToken(request.getUsername());
+            String token = jwtService.generateToken(request.username());
 
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
@@ -86,16 +87,16 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> createUser(@RequestBody CreateUserRequest request) {
         User user = User.builder()
-            .loginName(request.getLoginName())
-            .email(request.getEmail())
-            .password(request.getPassword())
-            .firstName(request.getFirstName())
-            .lastName(request.getLastName())
-            .phone(request.getPhone())
-            .department(request.getDepartment())
-            .title(request.getTitle())
-            .active(request.getActive() != null ? request.getActive() : true)
-            .attributes(request.getAttributes())
+            .loginName(request.loginName())
+            .email(request.email())
+            .password(request.password())
+            .firstName(request.firstName())
+            .lastName(request.lastName())
+            .phone(request.phone())
+            .department(request.department())
+            .title(request.title())
+            .active(request.active() != null ? request.active() : true)
+            .attributes(request.attributes())
             .build();
 
         User created = userService.createUser(user);
@@ -106,15 +107,15 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
         User user = User.builder()
-            .loginName(request.getLoginName())
-            .email(request.getEmail())
-            .firstName(request.getFirstName())
-            .lastName(request.getLastName())
-            .phone(request.getPhone())
-            .department(request.getDepartment())
-            .title(request.getTitle())
-            .active(request.getActive())
-            .attributes(request.getAttributes())
+            .loginName(request.loginName())
+            .email(request.email())
+            .firstName(request.firstName())
+            .lastName(request.lastName())
+            .phone(request.phone())
+            .department(request.department())
+            .title(request.title())
+            .active(request.active())
+            .attributes(request.attributes())
             .build();
 
         User updated = userService.updateUser(id, user);
@@ -131,7 +132,7 @@ public class AdminController {
     @PostMapping("/users/{id}/change-password")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> changePassword(@PathVariable Long id, @RequestBody ChangePasswordRequest request) {
-        userService.changePassword(id, request.getPassword());
+        userService.changePassword(id, request.password());
         return ResponseEntity.ok().build();
     }
 

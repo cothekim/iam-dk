@@ -23,19 +23,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .securityMatcher("/oauth2/**", "/.well-known/**")
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().authenticated()
-            )
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/oauth2/**", "/.well-known/**"));
-
-        return http.build();
-    }
-
-    @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http

@@ -1,83 +1,61 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: iam-dk-postgres
-    environment:
-      POSTGRES_DB: iamdk
-      POSTGRES_USER: iamdk
-      POSTGRES_PASSWORD: iamdk_password_change_me
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U iamdk"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   auth-server:
-    build: ./auth-server
+    build:
+      context: .
+      dockerfile: auth-server/Dockerfile
     container_name: iam-dk-auth-server
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://directory-db:5432/iamdk_directory
+      - SPRING_DATASOURCE_USERNAME=iamdk
+      - SPRING_DATASOURCE_PASSWORD=secret
+    depends_on:
+      - directory-db
     ports:
       - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/iamdk
-      SPRING_DATASOURCE_USERNAME: iamdk
-      SPRING_DATASOURCE_PASSWORD: iamdk_password_change_me
-      SPRING_PROFILES_ACTIVE: docker
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
 
   directory-service:
-    build: ./directory-service
+    build:
+      context: .
+      dockerfile: directory-service/Dockerfile
     container_name: iam-dk-directory-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://directory-db:5432/iamdk_directory
+      - SPRING_DATASOURCE_USERNAME=iamdk
+      - SPRING_DATASOURCE_PASSWORD=secret
+    depends_on:
+      - directory-db
     ports:
       - "8081:8081"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/iamdk
-      SPRING_DATASOURCE_USERNAME: iamdk
-      SPRING_DATASOURCE_PASSWORD: iamdk_password_change_me
-      SPRING_PROFILES_ACTIVE: docker
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
 
   admin-console:
-    build: ./admin-console
+    build:
+      context: .
+      dockerfile: admin-console/Dockerfile
     container_name: iam-dk-admin-console
     ports:
-      - "3000:80"
-    depends_on:
-      - auth-server
-      - directory-service
-    restart: unless-stopped
+      - "80:80"
 
   sample-resource-server:
-    build: ./sample-resource-server
+    build:
+      context: .
+      dockerfile: sample-resource-server/Dockerfile
     container_name: iam-dk-sample-resource-server
-    ports:
-      - "8082:8082"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/iamdk
-      SPRING_DATASOURCE_USERNAME: iamdk
-      SPRING_DATASOURCE_PASSWORD: iamdk_password_change_me
-      AUTH_SERVER_ISSUER_URI: http://auth-server:8080
-      SPRING_PROFILES_ACTIVE: docker
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUE_TOKEN_URL=http://auth-server:8080/oauth2/introspect
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_ISSUER_URI=http://auth-server:8080
     depends_on:
       - auth-server
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+    ports:
+      - "8082:8082"
 
-volumes:
-  postgres-data:
-
-networks:
-  default:
-    name: iam-dk-network
+  directory-db:
+    image: postgres:15-alpine
+    container_name: iam-dk-directory-db
+    environment:
+      - POSTGRES_USER=iamdk
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=iamdk_directory
+    ports:
+      - "5432:5432"

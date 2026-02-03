@@ -1,0 +1,13 @@
+# Gradle
+.gradle/
+build/
+
+# Node
+node_modules/
+build/
+package-lock.json
+
+# IDE
+.idea/
+*.iml
+.vscode/
