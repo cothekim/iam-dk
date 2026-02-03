@@ -1,0 +1,54 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: iam-dk-directory-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/iamdk
+    username: iamdk
+    password: iamdk_password_change_me
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# Logging
+logging:
+  level:
+    com.iamdk: DEBUG
+    org.springframework.security: DEBUG
+
+# JWT Configuration for API authentication
+jwt:
+  secret: iamdk-jwt-secret-change-this-in-production-at-least-256-bits
+  expiration: 3600000 # 1 hour
+
+# SCIM Configuration
+scim:
+  base-url: /api/scim/v2
+
+# Provisioning Configuration
+provisioning:
+  csv:
+    max-rows: 5000
+    supported-formats: csv
+    default-mappings:
+      loginName: loginName
+      email: email
+      firstName: firstName
+      lastName: lastName
+      active: active

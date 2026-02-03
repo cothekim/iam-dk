@@ -1,0 +1,18 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: iam-dk-sample-resource-server
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080
+
+# Logging
+logging:
+  level:
+    com.iamdk: DEBUG
+    org.springframework.security: DEBUG
