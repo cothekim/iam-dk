@@ -33,9 +33,9 @@ services:
     build:
       context: .
       dockerfile: admin-console/Dockerfile
-    container_name: iam-dk-admin-console
+      container_name: iam-dk-admin-console
     environment:
-      - REACT_APP_API_URL=http://directory-service:8081/api/admin
+      - API_URL=http://127.0.0.1/api/admin
     ports:
       - "127.0.0.1:80:80"
     extra_hosts:
@@ -47,8 +47,8 @@ services:
       dockerfile: sample-resource-server/Dockerfile
     container_name: iam-dk-sample-resource-server
     environment:
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUE_TOKEN_URL=http://auth-server:8080/oauth2/introspect
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_ISSUER_URI=http://auth-server:8080
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUE_TOKEN_URL=http://127.0.0.1:8080/oauth2/introspect
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_ISSUER_URI=http://127.0.0.1:8080
     depends_on:
       - auth-server
     ports:

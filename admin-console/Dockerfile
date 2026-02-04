@@ -3,24 +3,37 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Build arguments for React environment variables
-ARG REACT_APP_API_URL
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
+# Set API URL from build argument (default to localhost)
+ARG API_URL=http://directory-service:8081/api/admin
 
+# Copy package files
 COPY admin-console/package.json ./
+
+# Install dependencies
 RUN npm install
 
+# Copy source files
 COPY admin-console/public ./public
 COPY admin-console/src ./src
 
-RUN npm run build
+# Build with API URL
+RUN echo "REACT_APP_API_URL=${API_URL}" > .env && npm run build
 
 # Production stage
 FROM nginx:alpine
 
+WORKDIR /app
+
+# Set API URL from build argument (default to localhost)
+ARG API_URL=http://directory-service:8081/api/admin
+
+# Copy built files
 COPY --from=build /app/build /usr/share/nginx/html
 
-COPY admin-console/nginx.conf /etc/nginx/conf.d/default.conf
+# Use envsubst to substitute API_URL in nginx.conf
+RUN apk add --no-cache gettext && \
+    envsubst '$API_URL' < /usr/share/nginx/html/nginx.conf > /tmp/nginx.conf && \
+    mv /tmp/nginx.conf /usr/share/nginx/html/nginx.conf
 
 EXPOSE 80
 
