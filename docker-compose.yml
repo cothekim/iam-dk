@@ -33,6 +33,10 @@ services:
     build:
       context: .
       dockerfile: admin-console/Dockerfile
+      args:
+        # 호스트 IP를 환경변수로 받거나, 기본값으로 host.docker.internal 사용
+        # 사용 예: REACT_APP_API_URL=http://192.168.1.100:8081/api/admin docker-compose build
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://host.docker.internal:8081/api/admin}
     container_name: iam-dk-admin-console
     ports:
       - "80:80"
