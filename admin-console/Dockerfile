@@ -30,9 +30,12 @@ ARG API_URL=http://directory-service:8081/api/admin
 # Copy built files
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Use envsubst to substitute API_URL in nginx.conf
+# Copy nginx config
+COPY admin-console/nginx.conf /usr/share/nginx/html/nginx.conf
+
+# Substitute API_URL in nginx.conf using envsubst
 RUN apk add --no-cache gettext && \
-    envsubst '$API_URL' < /usr/share/nginx/html/nginx.conf > /tmp/nginx.conf && \
+    envsubst "$API_URL" < /usr/share/nginx/html/nginx.conf > /tmp/nginx.conf && \
     mv /tmp/nginx.conf /usr/share/nginx/html/nginx.conf
 
 EXPOSE 80
