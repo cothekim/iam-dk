@@ -12,7 +12,7 @@ function Login({ onLogin, apiBaseUrl }) {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await api.post('/login', {
+      const response = await api.post('/api/admin/login', {
         username: values.username,
         password: values.password,
       });
