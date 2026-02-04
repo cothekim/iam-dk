@@ -13,7 +13,7 @@ services:
     depends_on:
       - directory-db
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
 
   directory-service:
     build:
@@ -27,21 +27,19 @@ services:
     depends_on:
       - directory-db
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
 
   admin-console:
     build:
       context: .
       dockerfile: admin-console/Dockerfile
-      args:
-        # 호스트 IP를 환경변수로 받거나, 기본값으로 host.docker.internal 사용
-        # 사용 예: REACT_APP_API_URL=http://192.168.1.100:8081/api/admin docker-compose build
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://host.docker.internal:8081/api/admin}
     container_name: iam-dk-admin-console
     environment:
       - REACT_APP_API_URL=http://directory-service:8081/api/admin
     ports:
-      - "80:80"
+      - "127.0.0.1:80:80"
+    extra_hosts:
+      - "directory-service:127.0.0.1"
 
   sample-resource-server:
     build:
@@ -54,7 +52,7 @@ services:
     depends_on:
       - auth-server
     ports:
-      - "8082:8082"
+      - "127.0.0.1:8082:8082"
 
   directory-db:
     image: postgres:15-alpine
@@ -64,4 +62,4 @@ services:
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=iamdk_directory
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
