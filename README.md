@@ -39,7 +39,7 @@ MVP 기반의 중앙 인증·사용자 디렉터리·기본 프로비저닝 서�
 | postgres | 5432 | PostgreSQL 데이터베이스 |
 | auth-server | 8080 | OAuth2/OIDC Authorization Server |
 | directory-service | 8081 | User/Group/SCIM API, Provisioning |
-| admin-console | 3000 | React 관리 콘솔 |
+| admin-console | 80 | React 관리 콘솔 |
 | sample-resource-server | 8082 | 샘플 앱 (OIDC 연동 예제) |
 
 ## 🚀 빠른 시작
@@ -47,7 +47,8 @@ MVP 기반의 중앙 인증·사용자 디렉터리·기본 프로비저닝 서�
 ### 사전 요구사항
 
 - Docker & Docker Compose
-- Maven 3.9+
+- JDK 17
+- Gradle 8.5+ (또는 SDKMAN으로 자동 설치)
 - Node.js 18+ (로컬 개발 시)
 
 ### 1. 클론 및 빌드
@@ -55,16 +56,31 @@ MVP 기반의 중앙 인증·사용자 디렉터리·기본 프로비저닝 서�
 ```bash
 cd iam-dk
 
-# 전체 빌드 (선택사항 - Docker에서 자동 빌드됨)
-cd auth-server && mvn clean package -DskipTests && cd ..
-cd directory-service && mvn clean package -DskipTests && cd ..
-cd sample-resource-server && mvn clean package -DskipTests && cd ..
+# SDKMAN 설치 (선택사항)
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# Java 17 설치
+sdk install java 17.0.13-tem
+sdk use java 17.0.13-tem
+
+# Gradle 8.5 설치
+sdk install gradle 8.5
+sdk use gradle 8.5
+
+# 전체 빌드
+cd auth-server && gradle build && cd ..
+cd directory-service && gradle build && cd ..
+cd sample-resource-server && gradle build && cd ..
+
+# React Admin Console 빌드
+cd admin-console && npm install && npm run build && cd ..
 ```
 
 ### 2. Docker Compose로 실행
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. 초기 계정 설정
@@ -72,7 +88,7 @@ docker-compose up -d
 PostgreSQL에 기본 admin 계정이 필요합니다:
 
 ```bash
-docker exec -it iam-dk-postgres psql -U iamdk -d iamdk -c "
+docker exec -it iam-dk-directory-db psql -U iamdk -d iamdk_directory -c "
 INSERT INTO users (login_name, email, password, first_name, last_name, active, created_at, updated_at)
 VALUES ('admin', 'admin@iamdk.local', '\$2a\$10\$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'System', 'Admin', true, NOW(), NOW())
 ON CONFLICT (login_name) DO NOTHING;
@@ -88,7 +104,7 @@ ON CONFLICT (login_name) DO NOTHING;
 
 | 서비스 | URL |
 |--------|-----|
-| Admin Console | http://localhost:3000 |
+| Admin Console | http://localhost |
 | Auth Server | http://localhost:8080 |
 | Directory Service API | http://localhost:8081 |
 | Sample App | http://localhost:8082 |
@@ -97,7 +113,7 @@ ON CONFLICT (login_name) DO NOTHING;
 
 ### Admin Console
 
-1. http://localhost:3000 접속
+1. http://localhost 접속
 2. admin / admin123 로그인
 3. Users, Groups, OAuth Clients, Provisioning 관리
 
@@ -107,7 +123,7 @@ ON CONFLICT (login_name) DO NOTHING;
 2. 설정 예시:
    - Client ID: `my-app`
    - Client Secret: `my-secret`
-   - Redirect URI: `http://localhost:3000/callback`
+   - Redirect URI: `http://localhost/auth/callback`
    - Grant Types: `authorization_code`, `refresh_token`
    - Scopes: `openid`, `profile`, `email`
 
@@ -198,12 +214,12 @@ curl -X POST \
 
 ```bash
 # 1. Get authorization code (브라우저에서)
-http://localhost:8080/oauth2/authorize?client_id=admin-console&response_type=code&redirect_uri=http://localhost:3000/auth/callback&scope=openid%20profile%20email
+http://localhost:8080/oauth2/authorize?client_id=admin-console&response_type=code&redirect_uri=http://localhost/auth/callback&scope=openid%20profile%20email
 
 # 2. Exchange code for token
 curl -X POST \
   -u "admin-console:admin-console-secret" \
-  -d "grant_type=authorization_code&code=<CODE>&redirect_uri=http://localhost:3000/auth/callback" \
+  -d "grant_type=authorization_code&code=<CODE>&redirect_uri=http://localhost/auth/callback" \
   http://localhost:8080/oauth2/token
 ```
 
@@ -214,11 +230,11 @@ iam-dk/
 ├── docker-compose.yml
 ├── auth-server/                 # OAuth2/OIDC Provider
 │   ├── src/main/java/
-│   ├── pom.xml
+│   ├── build.gradle
 │   └── Dockerfile
 ├── directory-service/          # User/Group/SCIM/Provisioning
 │   ├── src/main/java/
-│   ├── pom.xml
+│   ├── build.gradle
 │   └── Dockerfile
 ├── admin-console/               # React Admin UI
 │   ├── src/
@@ -227,7 +243,7 @@ iam-dk/
 │   └── Dockerfile
 └── sample-resource-server/     # Sample App
     ├── src/main/java/
-    ├── pom.xml
+    ├── build.gradle
     └── Dockerfile
 ```
 
@@ -254,22 +270,22 @@ iam-dk/
 ```bash
 # PostgreSQL 실행 (Docker)
 docker run -d -p 5432:5432 \
-  -e POSTGRES_DB=iamdk \
+  -e POSTGRES_DB=iamdk_directory \
   -e POSTGRES_USER=iamdk \
-  -e POSTGRES_PASSWORD=iamdk_password_change_me \
+  -e POSTGRES_PASSWORD=secret \
   postgres:16-alpine
 
 # Auth Server
-cd auth-server && mvn spring-boot:run
+cd auth-server && gradle bootRun
 
 # Directory Service
-cd directory-service && mvn spring-boot:run
+cd directory-service && gradle bootRun
 
 # Admin Console
 cd admin-console && npm start
 
 # Sample Resource Server
-cd sample-resource-server && mvn spring-boot:run
+cd sample-resource-server && gradle bootRun
 ```
 
 ## 📝 MVP 성공 지표
