@@ -80,7 +80,7 @@ cd admin-console && npm install && npm run build && cd ..
 ### 2. Docker Compose로 실행
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 ### 3. 초기 계정 설정
