@@ -3,13 +3,15 @@ FROM eclipse-temurin:17-jdk-alpine AS build
 
 WORKDIR /app
 
-# Copy Gradle wrapper and project files
-COPY gradlew gradle/wrapper/gradle-wrapper.jar ./
+# Install Gradle
+RUN apk add --no-cache gradle
+
+# Copy project files
 COPY auth-server/build.gradle ./build.gradle
 COPY auth-server/src ./src
 
 # Build
-RUN chmod +x gradlew && ./gradlew build -x test --no-daemon
+RUN gradle build -x test --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine
